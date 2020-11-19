@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<meta name="renderer" content="webkit">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+	<meta http-equiv="Access-Control-Allow-Origin" content="*">
+	<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+	<meta name="apple-mobile-web-app-status-bar-style" content="black">
+	<meta name="apple-mobile-web-app-capable" content="yes">
+	<meta name="format-detection" content="telephone=no">
+	<script type="text/javascript" src="/public/static/jquery-3.3.1.min.js"></script>
+	<script type="text/javascript" src="/public/static/echarts.min.js"></script>
+  <script type="text/javascript" src="/public/static/socket.io.js"></script>
+  <style>
+    body{
+      background-color: rgba(0, 0, 0, .8);
+    }
+
+  </style>
+</head>
+<body>
+  <div id="main" style="width: 600px;height: 400px; margin: 80px auto;"></div>			
+	<script>
+
+    var pillarChart = echarts.init(document.getElementById('main'));
+		$(function () { 
+			var socket = io('/',{
+				transports:['websocket']
+			})
+			window.socket = socket;
+			window.socket.emit('echart');
+			setInterval(() => {
+        window.socket.emit('echart');
+        // console.log(1)
+      }, 1000);
+			socket.on('getEchart',function(data){
+        
+        let keywords = data.map(item => item.keywords);
+        let heat = data.map(item => item.heat);
+        setPillarChart(keywords,heat);
+      });
+    })
+
+    function setPillarChart(x_key, y_value) {
+      // console.log(x_key, y_value)
+      let plcolors = ["rgb(250,209,41)", "rgb(254,128,44)", "rgb(253,89,88)", "rgb(248,93,185)",
+                        "rgb(166,75,255)", "rgb(23,30,207)", "rgb(77,112,238)", "rgb(0,197,213)"];
+      let yvalues = [];
+      for(let i = 0; i < y_value.length; i++) {
+        let obj = {
+          value: y_value[i],
+          itemStyle:{
+            normal:{
+              color:plcolors[i % plcolors.length]
+            }
+          }
+        }
+        yvalues.push(obj);
+      }
+      pillar_chart_option = {
+        title: {
+          text: '热度榜',
+          textStyle: {
+            color: '#ffffff'
+          },
+        },
+        tooltip: {},
+        legend: {
+          data:[{
+            name: '热度',
+            textStyle: {
+              color:"#ffffff"
+            }
+          }]
+        },
+        xAxis: {
+          type: 'category',
+          data: x_key,
+          axisLine:{
+            lineStyle:{
+              color:'#ffffff',
+            }
+          },
+          axisLabel:{
+            interval: 0,//横轴信息全部显示
+            rotate: -30,//-30度角倾斜显示
+          }
+        },
+        yAxis: {
+          type: 'value',
+          axisLine:{
+            lineStyle:{
+              color:'#ffffff',
+            }
+          }
+        },
+        series: [{
+          name:"热度",
+          data: yvalues,
+          type: 'bar',
+          smooth: true
+        }]
+      };
+      pillarChart.setOption(pillar_chart_option);
+    }
+	</script>
+</body>
+</html>
