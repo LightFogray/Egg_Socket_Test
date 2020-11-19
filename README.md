@@ -1,6 +1,6 @@
 # Egg_Socket_Test
 
-Simple Test
+socke.io+echarts
 
 ## QuickStart
 
